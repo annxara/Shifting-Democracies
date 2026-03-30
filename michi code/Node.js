@@ -9,8 +9,8 @@ class Node {
 
   normalizeValue(key, value) {
     // Map different value systems to 0-1 scale
-    if (key === "stfgov") {
-      // stfgov is on 0-10 scale, normalize to 0-1
+    if (key === "stfgov" || key === "stfdem") {
+      // stfgov and stfdem are on 0-10 scale, normalize to 0-1
       return value / 10;
     }
     return value; // v2x_* variables already on 0-1 scale
@@ -70,25 +70,28 @@ class Node {
     const vdemKeys = [
       "v2x_polyarchy",
       "v2x_libdem",
-      //"v2x_egaldem",
-      //"v2x_delibdem",
-      //"v2x_partipdem",
+      "v2x_egaldem",
+      "v2x_delibdem",
+      "v2x_partipdem",
       // "v2x_freexp_altinf",
-      "stfgov",
+      //"stfgov",
+      "stfdem",
     ];
     const vdemColors = [
-      [255, 100, 100],
-      [100, 200, 100],
-      [100, 100, 255],
-      [255, 200, 50],
-      [200, 100, 255],
-      //[0, 0, 0],
+      "orange", // v2x_polyarchy
+      "lightgreen", // v2x_libdem
+      "cornflowerblue", // v2x_egaldem
+      "green", // v2x_delibdem
+      "violet", // v2x_partipdem
+      "red", // stfgov
+      "lol", // stfdem
+      // 'black',
     ];
 
     noFill();
     for (let vi = 0; vi < vdemKeys.length; vi++) {
       const key = vdemKeys[vi];
-      stroke(...vdemColors[vi]);
+      stroke(vdemColors[vi]);
       strokeWeight(1);
       beginShape();
       for (let i = 0; i < sortedYears.length; i++) {

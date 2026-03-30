@@ -5,12 +5,13 @@ let sortedCountries = [];
 
 const gui = new lil.GUI();
 const params = {
-  //stfdem: 5,
-  //stfeco: 5,
+  //: 5,
+  stfeco: 5,
   //stfedu: 5,
   //stfhlth: 5,
   stflife: 5,
-  trstprl: 5,
+  //trstprl: 5,
+  stfgov: 5,
 };
 
 function preload() {
