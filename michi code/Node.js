@@ -7,6 +7,15 @@ class Node {
     this.yearDistances = {}; // keyed by year
   }
 
+  normalizeValue(key, value) {
+    // Map different value systems to 0-1 scale
+    if (key === "stfgov") {
+      // stfgov is on 0-10 scale, normalize to 0-1
+      return value / 10;
+    }
+    return value; // v2x_* variables already on 0-1 scale
+  }
+
   calcDist(params) {
     let minDist = Infinity;
     let closestYear = null;
@@ -19,7 +28,9 @@ class Node {
       let sumSquares = 0;
       for (const [key, value] of Object.entries(params)) {
         if (details[key] !== undefined) {
-          sumSquares += (details[key] - value) ** 2;
+          const normalizedData = this.normalizeValue(key, details[key]);
+          const normalizedParam = this.normalizeValue(key, value);
+          sumSquares += (normalizedData - normalizedParam) ** 2;
         }
       }
       const dist = Math.sqrt(sumSquares);
@@ -59,10 +70,11 @@ class Node {
     const vdemKeys = [
       "v2x_polyarchy",
       "v2x_libdem",
-      "v2x_egaldem",
-      "v2x_delibdem",
-      "v2x_partipdem",
-      "v2x_freexp_altinf",
+      //"v2x_egaldem",
+      //"v2x_delibdem",
+      //"v2x_partipdem",
+      // "v2x_freexp_altinf",
+      "stfgov",
     ];
     const vdemColors = [
       [255, 100, 100],
@@ -70,7 +82,7 @@ class Node {
       [100, 100, 255],
       [255, 200, 50],
       [200, 100, 255],
-      [0, 0, 0],
+      //[0, 0, 0],
     ];
 
     noFill();
@@ -83,7 +95,8 @@ class Node {
         const details = sortedYears[i];
         if (details[key] === undefined) continue;
         const x = map(i, 0, sortedYears.length - 1, startX, startX + lineW);
-        const y = map(details[key], 0, 1, startY + lineH, startY);
+        const normalizedValue = this.normalizeValue(key, details[key]);
+        const y = map(normalizedValue, 0, 1, startY + lineH, startY);
         vertex(x, y);
       }
       endShape();

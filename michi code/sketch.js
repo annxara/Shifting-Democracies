@@ -5,16 +5,16 @@ let sortedCountries = [];
 
 const gui = new lil.GUI();
 const params = {
-  stfdem: 5,
-  stfeco: 5,
-  stfedu: 5,
-  stfhlth: 5,
+  //stfdem: 5,
+  //stfeco: 5,
+  //stfedu: 5,
+  //stfhlth: 5,
   stflife: 5,
   trstprl: 5,
 };
 
 function preload() {
-  loadJSON("ess_vdem_country_year_variables_restructured.json", (d) => {
+  loadJSON("ess_vdem_country_year_variables 2.json", (d) => {
     data = d;
   });
 }
