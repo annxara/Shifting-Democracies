@@ -41,7 +41,7 @@ function draw() {
   background(0);
 
   let margin = 90;
-  let gutter = 90;
+  let gutter = 100;
   let numColumns = 4;
   let availableWidth = width - margin * 2;
   let columnWidth = availableWidth / numColumns;

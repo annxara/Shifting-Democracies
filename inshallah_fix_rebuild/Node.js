@@ -52,15 +52,15 @@ class Node {
 
     push();
     translate(this.pos.x, this.pos.y);
-    let rectWidth = 200; // rectangle width
-    let rectHeight = 70; // rectangle height
+    let rectWidth = 400; // rectangle width
+    let rectHeight = 80; // rectangle height
     rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
 
     fill(255);
     textAlign(CENTER);
     textSize(10);
-    text(this.country, -25, 42.5);
-    text(this.closest.year, 63, 42.5);
+    text(this.country, -25, 52.5);
+    text(this.closest.year, 63, 52.5);
 
     // Create a map of year to data for quick lookup
     const yearMap = {};
