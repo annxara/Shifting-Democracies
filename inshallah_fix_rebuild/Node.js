@@ -47,25 +47,32 @@ class Node {
     this.closest = { year: closestYear, data: closestData, distance: minDist };
     return this.closest;
   }
-  render() {
+  render(allYears) {
     if (!this.closest) return;
 
     push();
     translate(this.pos.x, this.pos.y);
-    let d = map(this.closest.distance, 0, 15, 100, 10);
-    ellipse(0, 0, d);
+    let rectWidth = 200; // rectangle width
+    let rectHeight = 70; // rectangle height
+    rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
 
-    fill(0);
+    fill(255);
     textAlign(CENTER);
-    text(this.closest.distance.toFixed(2), 0, 90);
-    text(this.country, 0, 60);
-    text(this.closest.year, 0, 75);
+    textSize(10);
+    text(this.country, -25, 42.5);
+    text(this.closest.year, 63, 42.5);
 
-    const sortedYears = [...this.years].sort((a, b) => a.year - b.year);
-    const lineW = 120;
-    const lineH = 50;
+    // Create a map of year to data for quick lookup
+    const yearMap = {};
+    for (const yearData of this.years) {
+      yearMap[yearData.year] = yearData;
+    }
+
+    const lineW = rectWidth * 0.99; // scale to rectangle width
+    const lineH = rectHeight * 0.95; // scale to rectangle height
     const startX = -lineW / 2;
-    const startY = 0;
+    const startY = -lineH / 2;
+    const sectionWidth = lineW / allYears.length;
 
     const vdemKeys = [
       "v2x_polyarchy",
@@ -79,25 +86,49 @@ class Node {
     ];
     const vdemColors = [
       "orange", // v2x_polyarchy
-      "lightgreen", // v2x_libdem
+      "rosa", // v2x_libdem
       "cornflowerblue", // v2x_egaldem
       "green", // v2x_delibdem
       "violet", // v2x_partipdem
-      "red", // stfgov
-      "lol", // stfdem
-      // 'black',
+      "red", // stfdem
     ];
 
+    // Draw grey background for missing years
+    fill(200);
+    noStroke();
+    for (let i = 0; i < allYears.length; i++) {
+      const year = allYears[i];
+      if (!yearMap[year]) {
+        const x = startX + i * sectionWidth;
+        rect(x, startY, sectionWidth, lineH);
+      }
+    }
+
+    // Draw light yellow background for highlighted year
+    fill(255, 255, 150);
+    noStroke();
+    for (let i = 0; i < allYears.length; i++) {
+      const year = allYears[i];
+      if (year === this.closest.year) {
+        const x = startX + i * sectionWidth;
+        rect(x, startY, sectionWidth, lineH);
+      }
+    }
+
+    // Draw data visualization for each variable
     noFill();
     for (let vi = 0; vi < vdemKeys.length; vi++) {
       const key = vdemKeys[vi];
       stroke(vdemColors[vi]);
       strokeWeight(1);
+
+      // Draw lines connecting data points
       beginShape();
-      for (let i = 0; i < sortedYears.length; i++) {
-        const details = sortedYears[i];
-        if (details[key] === undefined) continue;
-        const x = map(i, 0, sortedYears.length - 1, startX, startX + lineW);
+      for (let i = 0; i < allYears.length; i++) {
+        const year = allYears[i];
+        const details = yearMap[year];
+        if (!details || details[key] === undefined) continue;
+        const x = startX + (i + 0.5) * sectionWidth;
         const normalizedValue = this.normalizeValue(key, details[key]);
         const y = map(normalizedValue, 0, 1, startY + lineH, startY);
         vertex(x, y);
@@ -105,21 +136,43 @@ class Node {
       endShape();
     }
 
-    for (let i = 0; i < sortedYears.length; i++) {
-      const details = sortedYears[i];
-      const yr = details.year;
-      const x = map(i, 0, sortedYears.length - 1, startX, startX + lineW);
-      const dist = this.yearDistances[yr];
-      const dotSize = map(dist, 0, 15, 10, 2);
-      const yabbrev = map(dist, 0, 15, 50, 0);
+    // Draw colored data points for each variable in each year
+    for (let vi = 0; vi < vdemKeys.length; vi++) {
+      const key = vdemKeys[vi];
+      fill(vdemColors[vi]);
+      noStroke();
 
-      if (yr === this.closest.year) {
+      for (let i = 0; i < allYears.length; i++) {
+        const year = allYears[i];
+        const details = yearMap[year];
+        if (!details || details[key] === undefined) continue;
+        const x = startX + (i + 0.5) * sectionWidth;
+        const normalizedValue = this.normalizeValue(key, details[key]);
+        const y = map(normalizedValue, 0, 1, startY + lineH, startY);
+        circle(x, y, 4);
+      }
+    }
+
+    // Draw year indicator dots
+    for (let i = 0; i < allYears.length; i++) {
+      const year = allYears[i];
+      const x = startX + (i + 0.5) * sectionWidth;
+
+      if (year === this.closest.year) {
         fill(0);
       } else {
         fill(180);
       }
       noStroke();
-      ellipse(x, startY + lineH + 8 - yabbrev, 4);
+      rect(x - 1, startY + lineH - 4 - 1, 2, 2);
+    }
+
+    // Draw vertical dividers between years (equally spaced)
+    stroke(0);
+    strokeWeight(0.5);
+    for (let i = 1; i < allYears.length; i++) {
+      const x = startX + i * sectionWidth;
+      line(x, startY, x, startY + lineH);
     }
 
     pop();
