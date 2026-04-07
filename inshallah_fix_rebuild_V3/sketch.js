@@ -40,8 +40,8 @@ function setup() {
 function draw() {
   background(0);
 
-  let topMargin = 50; // Top margin
-  let gutter = 100; // Vertical spacing between rectangles
+  let topMargin = 100; // Top margin
+  let gutter = 110; // Vertical spacing between rectangles
 
   // Fixed positions for 4 columns (centered on canvas)
   let columnPositions = [650];
@@ -49,31 +49,30 @@ function draw() {
   let column = 0;
   let posX = columnPositions[column];
 
-  //for (const country of sortedCountries) {
-  for (let i = 0; i < countries.length; i++) {
-    const country = countries[i];
+  // Filter to only countries with matching years
+  const matchingCountries = countries.filter(
+    (country) => country.closest && country.closest.year !== null,
+  );
+
+  if (matchingCountries.length === 0) {
+    fill(200);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    text("No countries match these parameters", width / 2, 200);
+    return;
+  }
+
+  // Position matching countries tightly together
+  for (let i = 0; i < matchingCountries.length; i++) {
+    const country = matchingCountries[i];
     country.setPosition(posX, posY);
     country.render(ALL_YEARS);
     posY += gutter;
-
-    // Check if we need to move to next column
-    // if (posY > height - topMargin && column < columnPositions.length - 1) {
-    //   column++;
-    //   posX = columnPositions[column];
-    //   posY = topMargin;
-    // }
   }
 }
 
 function onParamsChange() {
-  // sortedCountries = countries
-  //   .map((node) => {
-  //     node.calcDist(params);
-  //     return node;
-  //   })
-  //   .sort((a, b) => a.closest.distance - b.closest.distance);
-
   countries.forEach((node) => {
-    node.calcDist(params);
+    node.findMatchingYear(params);
   });
 }

@@ -16,39 +16,34 @@ class Node {
     return value; // v2x_* variables already on 0-1 scale
   }
 
-  calcDist(params) {
-    let minDist = Infinity;
-    let closestYear = null;
-    let closestData = null;
+  findMatchingYear(params) {
+    const tolerance = 0;
 
-    for (const details of this.years) {
-      if (details.year === 2025) continue; // ← skip 2025
+    const matchedDetails = this.years.filter((details) => {
+      if (details.year === 2025) return false;
 
-      const yr = details.year;
-      let sumSquares = 0;
-      for (const [key, value] of Object.entries(params)) {
-        if (details[key] !== undefined) {
-          const normalizedData = this.normalizeValue(key, details[key]);
-          const normalizedParam = this.normalizeValue(key, value);
-          sumSquares += (normalizedData - normalizedParam) ** 2;
-        }
-      }
-      const dist = Math.sqrt(sumSquares);
-      this.yearDistances[yr] = dist;
+      return (
+        details.stfeco !== undefined &&
+        Math.abs(details.stfeco - params.stfeco) <= tolerance &&
+        details.stflife !== undefined &&
+        Math.abs(details.stflife - params.stflife) <= tolerance &&
+        details.stfgov !== undefined &&
+        Math.abs(details.stfgov - params.stfgov) <= tolerance
+      );
+    });
 
-      if (dist < minDist) {
-        minDist = dist;
-        closestYear = yr;
-        closestData = details;
-        console.log(this.country, closestYear, minDist);
-      }
+    const matchingData = matchedDetails[0] || null;
+    const matchingYear = matchingData ? matchingData.year : null;
+
+    if (matchingData) {
+      console.log(this.country, matchingYear, params);
     }
 
-    this.closest = { year: closestYear, data: closestData, distance: minDist };
+    this.closest = { year: matchingYear, data: matchingData };
     return this.closest;
   }
   render(allYears) {
-    if (!this.closest) return;
+    if (!this.closest || this.closest.year === null) return;
 
     push();
     translate(this.pos.x, this.pos.y);
@@ -78,14 +73,6 @@ class Node {
     push();
     translate(offsetX, 0);
 
-    rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
-
-    fill(255);
-    textAlign(CENTER);
-    textSize(10);
-    text(this.country, -25, 52.5);
-    text(this.closest.year, 63, 52.5);
-
     const vdemKeys = [
       "v2x_polyarchy",
       "v2x_libdem",
@@ -105,14 +92,53 @@ class Node {
       "red", // stfdem
     ];
 
-    // Draw grey background for missing years
+    //fill(255);
+    noFill();
+    stroke(255);
+    strokeWeight(1);
+
+    let corner = 50;
+
+    rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight, corner);
+
+    // Draw white background for years that have data
+    fill(255);
+    noStroke();
+    for (let i = 0; i < allYears.length; i++) {
+      const year = allYears[i];
+      if (yearMap[year]) {
+        const x = startX + i * sectionWidth;
+        let radius = 0;
+        if (i === 0) {
+          // First year: round left corners
+          rect(x, startY, sectionWidth, lineH, 50, 0, 0, 50);
+        } else if (i === allYears.length - 1) {
+          // Last year: round right corners
+          rect(x, startY, sectionWidth, lineH, 0, 50, 50, 0);
+        } else {
+          // Middle years: no rounding
+          rect(x, startY, sectionWidth, lineH);
+        }
+      }
+    }
+
+    // Draw light gray background for missing years
     fill(200);
     noStroke();
     for (let i = 0; i < allYears.length; i++) {
       const year = allYears[i];
       if (!yearMap[year]) {
         const x = startX + i * sectionWidth;
-        rect(x, startY, sectionWidth, lineH);
+        if (i === 0) {
+          // First year: round left corners
+          rect(x, startY, sectionWidth, lineH, 50, 0, 0, 50);
+        } else if (i === allYears.length - 1) {
+          // Last year: round right corners
+          rect(x, startY, sectionWidth, lineH, 0, 50, 50, 0);
+        } else {
+          // Middle years: no rounding
+          rect(x, startY, sectionWidth, lineH);
+        }
       }
     }
 
@@ -123,9 +149,24 @@ class Node {
       const year = allYears[i];
       if (year === this.closest.year) {
         const x = startX + i * sectionWidth;
-        rect(x, startY, sectionWidth, lineH);
+        if (i === 0) {
+          // First year: round left corners
+          rect(x, startY, sectionWidth, lineH, 50, 0, 0, 50);
+        } else if (i === allYears.length - 1) {
+          // Last year: round right corners
+          rect(x, startY, sectionWidth, lineH, 0, 50, 50, 0);
+        } else {
+          // Middle years: no rounding
+          rect(x, startY, sectionWidth, lineH);
+        }
       }
     }
+
+    fill(255);
+    textAlign(CENTER);
+    textSize(10);
+    text(this.country, -25, 52.5);
+    text(this.closest.year, 63, 52.5);
 
     // Draw data visualization for each variable
     noFill();
