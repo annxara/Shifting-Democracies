@@ -52,10 +52,10 @@ class Node {
 
     push();
     translate(this.pos.x, this.pos.y);
-    
+
     let rectWidth = 400; // rectangle width
     let rectHeight = 80; // rectangle height
-    
+
     // Create a map of year to data for quick lookup
     const yearMap = {};
     for (const yearData of this.years) {
@@ -67,17 +67,17 @@ class Node {
     const startX = -lineW / 2;
     const startY = -lineH / 2;
     const sectionWidth = lineW / allYears.length;
-    
+
     // Find the index of the highlighted year
     let highlightedYearIndex = allYears.indexOf(this.closest.year);
-    
+
     // Calculate offset to center the highlighted year
     let offsetX = -(highlightedYearIndex * sectionWidth + sectionWidth / 2);
-    
+
     // Apply the offset to shift the content
     push();
     translate(offsetX, 0);
-    
+
     rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
 
     fill(255);
@@ -98,7 +98,7 @@ class Node {
     ];
     const vdemColors = [
       "orange", // v2x_polyarchy
-      "rosa", // v2x_libdem
+      "blue", // v2x_libdem
       "cornflowerblue", // v2x_egaldem
       "green", // v2x_delibdem
       "violet", // v2x_partipdem

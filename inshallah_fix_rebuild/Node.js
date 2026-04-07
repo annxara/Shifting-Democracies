@@ -86,7 +86,7 @@ class Node {
     ];
     const vdemColors = [
       "orange", // v2x_polyarchy
-      "rosa", // v2x_libdem
+      "blue", // v2x_libdem
       "cornflowerblue", // v2x_egaldem
       "green", // v2x_delibdem
       "violet", // v2x_partipdem
