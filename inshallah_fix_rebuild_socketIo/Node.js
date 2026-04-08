@@ -5,6 +5,12 @@ class Node {
     this.closest = null;
     this.pos = createVector(random(width), random(height));
     this.yearDistances = {}; // keyed by year
+
+    this.startShift = 0;
+    this.xshift = 0;
+
+    this.duration = 500;
+    this.startTime = millis();
   }
 
   normalizeValue(key, value) {
@@ -40,8 +46,13 @@ class Node {
     }
 
     this.closest = { year: matchingYear, data: matchingData };
+
+    this.startTime = millis();
+    this.startShift = this.xshift;
+
     return this.closest;
   }
+
   render(allYears) {
     if (!this.closest || this.closest.year === null) return;
 
@@ -69,9 +80,11 @@ class Node {
     // Calculate offset to center the highlighted year
     let offsetX = -(highlightedYearIndex * sectionWidth + sectionWidth / 2);
 
+    this.xshift = ease(this.startTime, this.duration, this.startShift, offsetX, "easeOutQuad");
+
     // Apply the offset to shift the content
     push();
-    translate(offsetX, 0);
+    translate(this.xshift, 0);
 
     const vdemKeys = [
       "v2x_polyarchy",
