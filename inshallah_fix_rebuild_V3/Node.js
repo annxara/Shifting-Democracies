@@ -63,6 +63,18 @@ class Node {
     );
   }
 
+  hasSatisfactionData(yearData) {
+    return (
+      yearData &&
+      yearData.stfeco !== undefined &&
+      yearData.stfeco !== null &&
+      yearData.stflife !== undefined &&
+      yearData.stflife !== null &&
+      yearData.stfgov !== undefined &&
+      yearData.stfgov !== null
+    );
+  }
+
   getClosestYearAndDifference(params) {
     // Find year with minimum distance to params
     let closestYear = null;
@@ -173,12 +185,12 @@ class Node {
 
     rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight, corner);
 
-    // Draw white background for years that have data
+    // Draw white background for years that have satisfaction data
     noStroke();
     for (let i = 0; i < allYears.length; i++) {
       const year = allYears[i];
       const yearData = yearMap[year];
-      if (yearData) {
+      if (yearData && this.hasSatisfactionData(yearData)) {
         const x = startX + i * sectionWidth;
         const isMatching = this.yearMatchesParams(yearData, params);
 
@@ -196,11 +208,12 @@ class Node {
       }
     }
 
-    // Draw light gray background for missing years
+    // Draw light gray background for years without satisfaction data
     noStroke();
     for (let i = 0; i < allYears.length; i++) {
       const year = allYears[i];
-      if (!yearMap[year]) {
+      const yearData = yearMap[year];
+      if (yearData && !this.hasSatisfactionData(yearData)) {
         const x = startX + i * sectionWidth;
         fill(170);
 
@@ -214,12 +227,16 @@ class Node {
       }
     }
 
-    // Draw light yellow background for highlighted/matching year
+    // Draw light yellow background for highlighted/matching year (only for years with satisfaction data)
     noStroke();
     for (let i = 0; i < allYears.length; i++) {
       const year = allYears[i];
       const yearData = yearMap[year];
-      if (yearData && this.yearMatchesParams(yearData, params)) {
+      if (
+        yearData &&
+        this.hasSatisfactionData(yearData) &&
+        this.yearMatchesParams(yearData, params)
+      ) {
         const x = startX + i * sectionWidth;
         fill(255, 255, 150, 255);
 
@@ -246,18 +263,73 @@ class Node {
       stroke(vdemColors[vi]);
       strokeWeight(0.5);
 
-      // Draw lines connecting data points
-      beginShape();
-      for (let i = 0; i < allYears.length; i++) {
-        const year = allYears[i];
-        const details = yearMap[year];
-        if (!details || details[key] === undefined) continue;
-        const x = startX + (i + 0.5) * sectionWidth;
-        const normalizedValue = this.normalizeValue(key, details[key]);
-        const y = map(normalizedValue, 0, 1, startY + lineH, startY);
-        vertex(x, y);
+      // For stfdem, break line at gaps in satisfaction data
+      if (key === "stfdem") {
+        let currentShape = [];
+        let lastIndex = -1;
+
+        for (let i = 0; i < allYears.length; i++) {
+          const year = allYears[i];
+          const details = yearMap[year];
+          if (!details || details[key] === undefined) continue;
+          if (!this.hasSatisfactionData(details)) continue;
+
+          // Check if there's a gap (missing satisfaction data years) between last point and current
+          if (lastIndex !== -1) {
+            let hasGap = false;
+            for (let j = lastIndex + 1; j < i; j++) {
+              if (
+                !yearMap[allYears[j]] ||
+                !this.hasSatisfactionData(yearMap[allYears[j]])
+              ) {
+                hasGap = true;
+                break;
+              }
+            }
+
+            // If gap found, draw current shape and start fresh
+            if (hasGap) {
+              if (currentShape.length > 0) {
+                beginShape();
+                for (let pt of currentShape) {
+                  vertex(pt.x, pt.y);
+                }
+                endShape();
+              }
+              currentShape = [];
+            }
+          }
+
+          const x = startX + (i + 0.5) * sectionWidth;
+          const normalizedValue = this.normalizeValue(key, details[key]);
+          const y = map(normalizedValue, 0, 1, startY + lineH, startY);
+          currentShape.push({ x, y });
+          lastIndex = i;
+        }
+
+        // Draw final shape
+        if (currentShape.length > 0) {
+          beginShape();
+          for (let pt of currentShape) {
+            vertex(pt.x, pt.y);
+          }
+          endShape();
+        }
+      } else {
+        // For other variables, draw continuous line
+        beginShape();
+        for (let i = 0; i < allYears.length; i++) {
+          const year = allYears[i];
+          const details = yearMap[year];
+          if (!details || details[key] === undefined) continue;
+
+          const x = startX + (i + 0.5) * sectionWidth;
+          const normalizedValue = this.normalizeValue(key, details[key]);
+          const y = map(normalizedValue, 0, 1, startY + lineH, startY);
+          vertex(x, y);
+        }
+        endShape();
       }
-      endShape();
     }
 
     // Draw colored data points for each variable in each year
@@ -270,6 +342,10 @@ class Node {
         const year = allYears[i];
         const details = yearMap[year];
         if (!details || details[key] === undefined) continue;
+
+        // Skip stfdem in years without satisfaction data
+        if (key === "stfdem" && !this.hasSatisfactionData(details)) continue;
+
         const x = startX + (i + 0.5) * sectionWidth;
         const normalizedValue = this.normalizeValue(key, details[key]);
         const y = map(normalizedValue, 0, 1, startY + lineH, startY);
