@@ -31,6 +31,31 @@ function setup() {
     let c = new Node(entry.country, entry.years);
     countries.push(c);
   }
+
+  console.log(`Loaded ${countries.length} countries`);
+
+  // Assign fixed positions to all countries in 3 columns
+  const numCols = 3;
+  const countriesPerCol = Math.ceil(countries.length / numCols);
+  const colWidth = width / numCols;
+  const topMargin = 100;
+  const verticalGap = (height - topMargin * 2) / countriesPerCol;
+
+  console.log(
+    `Countries per column: ${countriesPerCol}, Column width: ${colWidth}, Vertical gap: ${verticalGap}`,
+  );
+
+  for (let i = 0; i < countries.length; i++) {
+    const col = Math.floor(i / countriesPerCol);
+    const row = i % countriesPerCol;
+    const posX = colWidth * col + colWidth / 2;
+    const posY = topMargin + row * verticalGap;
+    countries[i].setPosition(posX, posY);
+    console.log(
+      `${countries[i].country}: col=${col}, row=${row}, pos=(${posX}, ${posY})`,
+    );
+  }
+
   for (const key of Object.keys(params)) {
     gui.add(params, key, 0, 10, 1).onChange(onParamsChange);
   }
@@ -40,34 +65,40 @@ function setup() {
 function draw() {
   background(0);
 
-  let topMargin = 100; // Top margin
-  let gutter = 110; // Vertical spacing between rectangles
-
-  // Fixed positions for 4 columns (centered on canvas)
-  let columnPositions = [650];
-  let posY = topMargin;
-  let column = 0;
-  let posX = columnPositions[column];
-
-  // Filter to only countries with matching years
-  const matchingCountries = countries.filter(
-    (country) => country.closest && country.closest.year !== null,
-  );
-
-  if (matchingCountries.length === 0) {
-    fill(200);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text("No countries match these parameters", width / 2, 200);
-    return;
+  // Check if any country has a matching year
+  let hasAnyMatch = false;
+  for (let i = 0; i < countries.length; i++) {
+    for (const yearData of countries[i].years) {
+      if (countries[i].yearMatchesParams(yearData, params)) {
+        hasAnyMatch = true;
+        break;
+      }
+    }
+    if (hasAnyMatch) break;
   }
 
-  // Position matching countries tightly together
-  for (let i = 0; i < matchingCountries.length; i++) {
-    const country = matchingCountries[i];
-    country.setPosition(posX, posY);
-    country.render(ALL_YEARS);
-    posY += gutter;
+  // Draw faint vertical lines at positions of matching countries
+  stroke(100, 100); // More visible faint lines
+  strokeWeight(1);
+  for (let i = 0; i < countries.length; i++) {
+    const country = countries[i];
+    // Check if country has a matching year
+    let hasMatch = false;
+    for (const yearData of country.years) {
+      if (country.yearMatchesParams(yearData, params)) {
+        hasMatch = true;
+        break;
+      }
+    }
+    if (hasMatch) {
+      line(country.pos.x, 0, country.pos.x, height);
+    }
+  }
+
+  // Render all countries (they have fixed positions)
+  for (let i = 0; i < countries.length; i++) {
+    const country = countries[i];
+    country.render(ALL_YEARS, params, hasAnyMatch);
   }
 }
 
@@ -76,12 +107,7 @@ function onParamsChange() {
     node.findMatchingYear(params);
   });
 
-  // Count and log matching countries
-  const matchingCount = countries.filter(
-    (country) => country.closest && country.closest.year !== null,
-  ).length;
-
   console.log(
-    `stfeco: ${params.stfeco}, stflife: ${params.stflife}, stfgov: ${params.stfgov} → ${matchingCount} countries`,
+    `Params: stfeco=${params.stfeco}, stflife=${params.stflife}, stfgov=${params.stfgov}`,
   );
 }
