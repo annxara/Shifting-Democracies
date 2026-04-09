@@ -122,7 +122,7 @@ class Node {
     // Only apply offset if:
     // 1. There's no matching year in this country AND
     // 2. There's at least one matching country globally
-    const offsetX = (hasMatch || !hasAnyMatch) ? 0 : avgDifference * 100;
+    const offsetX = hasMatch || !hasAnyMatch ? 0 : avgDifference * 100;
     translate(offsetX, 0);
 
     // Create a map of year to data for quick lookup
@@ -174,7 +174,7 @@ class Node {
         const isMatching = this.yearMatchesParams(yearData, params);
 
         // Full opacity for matching, reduced for non-matching
-        fill(255, isMatching ? 255 : 100);
+        fill(255, isMatching ? 255 : 255);
 
         let radius = 0;
         if (i === 0) {
@@ -193,7 +193,7 @@ class Node {
       const year = allYears[i];
       if (!yearMap[year]) {
         const x = startX + i * sectionWidth;
-        fill(200, 100);
+        fill(0);
 
         if (i === 0) {
           rect(x, startY, sectionWidth, lineH, corner, 0, 0, corner);

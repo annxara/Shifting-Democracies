@@ -62,8 +62,28 @@ function setup() {
   onParamsChange(); // Initialize closest years for all countries
 }
 
+function onParamsChange() {
+  countries.forEach((node) => {
+    node.findMatchingYear(params);
+  });
+
+  console.log(
+    `Params: stfeco=${params.stfeco}, stflife=${params.stflife}, stfgov=${params.stfgov}`,
+  );
+}
+
 function draw() {
-  background(0);
+  background(70);
+
+  // Draw 3 simple vertical guide lines at column centers
+  stroke(255, 100);
+  strokeWeight(2);
+  const numCols = 3;
+  const colWidth = width / numCols;
+  for (let col = 0; col < numCols; col++) {
+    const centerX = colWidth * col + colWidth / 2;
+    line(centerX, 0, centerX, height);
+  }
 
   // Check if any country has a matching year
   let hasAnyMatch = false;
@@ -77,37 +97,9 @@ function draw() {
     if (hasAnyMatch) break;
   }
 
-  // Draw faint vertical lines at positions of matching countries
-  stroke(100, 100); // More visible faint lines
-  strokeWeight(1);
-  for (let i = 0; i < countries.length; i++) {
-    const country = countries[i];
-    // Check if country has a matching year
-    let hasMatch = false;
-    for (const yearData of country.years) {
-      if (country.yearMatchesParams(yearData, params)) {
-        hasMatch = true;
-        break;
-      }
-    }
-    if (hasMatch) {
-      line(country.pos.x, 0, country.pos.x, height);
-    }
-  }
-
-  // Render all countries (they have fixed positions)
+  // Draw each country
   for (let i = 0; i < countries.length; i++) {
     const country = countries[i];
     country.render(ALL_YEARS, params, hasAnyMatch);
   }
-}
-
-function onParamsChange() {
-  countries.forEach((node) => {
-    node.findMatchingYear(params);
-  });
-
-  console.log(
-    `Params: stfeco=${params.stfeco}, stflife=${params.stflife}, stfgov=${params.stfgov}`,
-  );
 }
