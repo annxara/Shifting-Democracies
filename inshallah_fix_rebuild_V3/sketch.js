@@ -24,7 +24,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(3840, 2160);
+  createCanvas(1920, 1080);
 
   // data is now an array of { country, years: [...] }
   for (const entry of data) {
@@ -38,7 +38,7 @@ function setup() {
   const numCols = 3;
   const countriesPerCol = Math.ceil(countries.length / numCols);
   const colWidth = width / numCols;
-  const topMargin = 100;
+  const topMargin = 50;
   const verticalGap = (height - topMargin * 2) / countriesPerCol;
 
   console.log(
@@ -73,7 +73,7 @@ function onParamsChange() {
 }
 
 function draw() {
-  background(70);
+  background(0);
 
   // Draw 3 simple vertical guide lines at column centers
   stroke(255, 100);
@@ -101,5 +101,121 @@ function draw() {
   for (let i = 0; i < countries.length; i++) {
     const country = countries[i];
     country.render(ALL_YEARS, params, hasAnyMatch);
+  }
+
+  // Draw legend in top right corner
+  drawLegend();
+}
+
+function drawLegend() {
+  const legendX = width - 440;
+  const legendY = height - 225;
+  const legendW = 240;
+  const legendH = 165;
+
+  // Background box
+  fill(30);
+  stroke(150);
+  strokeWeight(2);
+  rect(legendX, legendY, legendW, legendH, 10);
+
+  // Title
+  fill(255);
+  textAlign(LEFT);
+  textSize(13);
+  textStyle(BOLD);
+  text("Legende", legendX + 8, legendY + 13);
+
+  // Example rectangle with divisions and colors
+  const exampleX = legendX + 8;
+  const exampleY = legendY + 18;
+  const exampleW = 175;
+  const exampleH = 20;
+  const sectionW = exampleW / 5; // Show 5 sections as example
+
+  // Draw sections
+  fill(170); // Missing year - gray
+  rect(exampleX, exampleY, sectionW, exampleH, 5, 0, 0, 5);
+
+  fill(255); // Matching - white
+  rect(exampleX + sectionW, exampleY, sectionW, exampleH);
+
+  fill(255); // Matching - white
+  rect(exampleX + sectionW * 2, exampleY, sectionW, exampleH);
+
+  fill(255, 255, 150, 255); // Matching highlight - yellow
+  rect(exampleX + sectionW * 3, exampleY, sectionW, exampleH);
+
+  fill(170); // Missing year - gray
+  rect(exampleX + sectionW * 4, exampleY, sectionW, exampleH, 0, 5, 5, 0);
+
+  // Draw sample data line across sections
+  stroke(255, 100, 100);
+  strokeWeight(1);
+  line(
+    exampleX + sectionW * 0.5,
+    exampleY + 15,
+    exampleX + sectionW * 4.5,
+    exampleY + 5,
+  );
+
+  // Draw dividers
+  stroke(0);
+  strokeWeight(0.5);
+  for (let i = 1; i < 5; i++) {
+    line(
+      exampleX + sectionW * i,
+      exampleY,
+      exampleX + sectionW * i,
+      exampleY + exampleH,
+    );
+  }
+
+  // Legend text
+  fill(200);
+  textSize(6);
+  textStyle(NORMAL);
+  text(
+    "1 Block = Year |Yellow = Matching Params | Gray = Missing ",
+    legendX + 8,
+    exampleY + exampleH + 10,
+  );
+
+  // Draw colored circles for data dimensions
+  const vdemLabels = [
+    "v2x_polyarchy",
+    "v2x_libdem",
+    "v2x_egaldem",
+    "v2x_delibdem",
+    "v2x_partipdem",
+    "stfdem",
+  ];
+  const vdemColors = [
+    "orange",
+    "blue",
+    "cornflowerblue",
+    "green",
+    "violet",
+    "red",
+  ];
+
+  const circleRadius = 3;
+  const circleSpacing = 18;
+
+  for (let i = 0; i < vdemLabels.length; i++) {
+    const circleX = legendX + 8;
+    const circleY = legendY + 8 + exampleH + 30 + i * circleSpacing;
+
+    // Draw circle
+    fill(vdemColors[i]);
+    noStroke();
+    circle(circleX, circleY, circleRadius * 2);
+
+    // Draw label
+    fill(150);
+    textAlign(LEFT);
+    textSize(5);
+    textStyle(NORMAL);
+    text(vdemLabels[i], circleX + 6, circleY + 2);
   }
 }

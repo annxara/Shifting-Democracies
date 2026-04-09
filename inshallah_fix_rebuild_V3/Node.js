@@ -5,6 +5,9 @@ class Node {
     this.closest = null;
     this.pos = createVector(random(width), random(height));
     this.yearDistances = {}; // keyed by year
+    this.currentOffset = 0; // Current animated offset
+    this.targetOffset = 0; // Target offset position
+    this.easeSpeed = 0.1; // Speed of easing (0-1, higher = faster)
   }
 
   normalizeValue(key, value) {
@@ -103,8 +106,8 @@ class Node {
     push();
     translate(this.pos.x, this.pos.y);
 
-    let rectWidth = 400; // rectangle width
-    let rectHeight = 80; // rectangle height
+    let rectWidth = 200; // rectangle width
+    let rectHeight = 40; // rectangle height
 
     // Get closest year and calculate horizontal offset based on difference
     const { avgDifference } = this.getClosestYearAndDifference(params);
@@ -122,8 +125,16 @@ class Node {
     // Only apply offset if:
     // 1. There's no matching year in this country AND
     // 2. There's at least one matching country globally
-    const offsetX = hasMatch || !hasAnyMatch ? 0 : avgDifference * 100;
-    translate(offsetX, 0);
+    this.targetOffset = hasMatch || !hasAnyMatch ? 0 : avgDifference * 50;
+
+    // Smoothly interpolate current offset towards target using easing
+    this.currentOffset = lerp(
+      this.currentOffset,
+      this.targetOffset,
+      this.easeSpeed,
+    );
+
+    translate(this.currentOffset, 0);
 
     // Create a map of year to data for quick lookup
     const yearMap = {};
@@ -142,8 +153,6 @@ class Node {
       "v2x_egaldem",
       "v2x_delibdem",
       "v2x_partipdem",
-      // "v2x_freexp_altinf",
-      //"stfgov",
       "stfdem",
     ];
     const vdemColors = [
@@ -160,7 +169,7 @@ class Node {
     stroke(255);
     strokeWeight(1);
 
-    let corner = 20;
+    let corner = 10;
 
     rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight, corner);
 
@@ -193,7 +202,7 @@ class Node {
       const year = allYears[i];
       if (!yearMap[year]) {
         const x = startX + i * sectionWidth;
-        fill(0);
+        fill(170);
 
         if (i === 0) {
           rect(x, startY, sectionWidth, lineH, corner, 0, 0, corner);
@@ -226,16 +235,16 @@ class Node {
 
     fill(255);
     textAlign(CENTER);
-    textSize(10);
-    text(this.country, -25, 52.5);
-    text(this.closest.year, 63, 52.5);
+    textSize(8);
+    text(this.country, 0, 28.5);
+    //text(this.closest.year, 63, 52.5);
 
     // Draw data visualization for each variable
     noFill();
     for (let vi = 0; vi < vdemKeys.length; vi++) {
       const key = vdemKeys[vi];
       stroke(vdemColors[vi]);
-      strokeWeight(1);
+      strokeWeight(0.5);
 
       // Draw lines connecting data points
       beginShape();
@@ -264,7 +273,7 @@ class Node {
         const x = startX + (i + 0.5) * sectionWidth;
         const normalizedValue = this.normalizeValue(key, details[key]);
         const y = map(normalizedValue, 0, 1, startY + lineH, startY);
-        circle(x, y, 4);
+        circle(x, y, 2);
       }
     }
 
@@ -279,12 +288,12 @@ class Node {
         fill(180);
       }
       noStroke();
-      rect(x - 1, startY + lineH - 4 - 1, 2, 2);
+      rect(x - 0.5, startY + lineH - 2 - 0.5, 1, 1);
     }
 
     // Draw vertical dividers between years (equally spaced)
     stroke(0);
-    strokeWeight(0.5);
+    strokeWeight(0.25);
     for (let i = 1; i < allYears.length; i++) {
       const x = startX + i * sectionWidth;
       line(x, startY, x, startY + lineH);
